@@ -1,5 +1,5 @@
 class Menu {
-  final String id;
+  final int id;
   final String nama;
   final String kantin;
   final String kategori;
@@ -8,8 +8,7 @@ class Menu {
   final DateTime diperbarui;
   final String gambar;
 
-  // Constructor
-  Menu({
+  const Menu({
     required this.id,
     required this.nama,
     required this.kantin,
@@ -20,21 +19,19 @@ class Menu {
     required this.gambar,
   });
 
-  // Mengubah JSON menjadi objek Menu
   factory Menu.fromJson(Map<String, dynamic> json) {
     return Menu(
-      id: json['id'] as String,
+      id: json['id'] as int,
       nama: json['nama'] as String,
       kantin: json['kantin'] as String,
       kategori: json['kategori'] as String,
-      harga: (json['harga'] as num).toInt(),
+      harga: json['harga'] as int,
       tersedia: json['tersedia'] as bool,
       diperbarui: DateTime.parse(json['diperbarui'] as String),
-      gambar: json['gambar'] as String,
+      gambar: json['gambar'] as String? ?? '',
     );
   }
 
-  // Mengubah objek Menu menjadi Map JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
