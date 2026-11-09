@@ -1,137 +1,164 @@
 import 'package:flutter/material.dart';
-
 import 'model_menu.dart';
 
 class KartuMenu extends StatelessWidget {
   final Menu menu;
-  final VoidCallback onKetukDetail;
-  final VoidCallback onTambahKeranjang;
 
   const KartuMenu({
     super.key,
     required this.menu,
-    required this.onKetukDetail,
-    required this.onTambahKeranjang,
   });
+
+  String _formatHarga(int harga) {
+    final hargaString = harga.toString();
+    final hasil = StringBuffer();
+
+    for (int i = 0; i < hargaString.length; i++) {
+      hasil.write(hargaString[i]);
+
+      final sisa = hargaString.length - i - 1;
+
+      if (sisa > 0 && sisa % 3 == 0) {
+        hasil.write('.');
+      }
+    }
+
+    return 'Rp${hasil.toString()}';
+  }
+
+  Widget _gambarMenu() {
+    if (menu.gambar.isEmpty) {
+      return Container(
+        color: Colors.orange.shade50,
+        child: const Center(
+          child: Icon(
+            Icons.restaurant,
+            size: 48,
+            color: Colors.deepOrange,
+          ),
+        ),
+      );
+    }
+
+    return Image.network(
+      menu.gambar,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.orange.shade50,
+          child: const Center(
+            child: Icon(
+              Icons.restaurant,
+              size: 48,
+              color: Colors.deepOrange,
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final skemaWarna = Theme.of(context).colorScheme;
-
-    return Opacity(
-      opacity: menu.tersedia ? 1.0 : 0.55,
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        color: skemaWarna.surfaceContainerLow,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onKetukDetail,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                // Gambar dan label Habis
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Animasi Hero
-                    Hero(
-                      tag: 'gambar_${menu.id}',
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Container(
-                          width: 72,
-                          height: 72,
-                          color: skemaWarna.primaryContainer,
-                          padding: const EdgeInsets.all(8),
-                          child: Image.asset(
-                            menu.gambar,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.fastfood,
-                                size: 36,
-                                color: skemaWarna.onPrimaryContainer,
-                              );
-                            },
-                          ),
-                        ),
-                      ),
+    return Card(
+      margin: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 6,
+      ),
+      clipBehavior: Clip.antiAlias,
+      elevation: 2,
+      child: Stack(
+        children: [
+          Opacity(
+            opacity: menu.tersedia ? 1.0 : 0.45,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 100,
+                    height: 100,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: _gambarMenu(),
                     ),
+                  ),
 
-                    // Label Habis
-                    if (!menu.tersedia)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: skemaWarna.error,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'Habis',
-                          style: TextStyle(
-                            color: skemaWarna.onError,
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          menu.nama,
+                          style: const TextStyle(
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            fontSize: 11,
                           ),
                         ),
-                      ),
-                  ],
-                ),
 
-                const SizedBox(width: 12),
+                        const SizedBox(height: 4),
 
-                // Informasi makanan
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        menu.nama,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: skemaWarna.onSurface,
+                        Text(
+                          menu.kantin,
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 4),
+                        const SizedBox(height: 4),
 
-                      Text(
-                        '${menu.kantin} • ${menu.kategori}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: skemaWarna.onSurfaceVariant,
+                        Text(
+                          menu.kategori,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 6),
+                        const SizedBox(height: 8),
 
-                      Text(
-                        'Rp ${menu.harga}',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: skemaWarna.primary,
+                        Text(
+                          _formatHarga(menu.harga),
+                          style: const TextStyle(
+                            color: Colors.deepOrange,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-
-                // Tombol tambah ke keranjang
-                FilledButton.tonalIcon(
-                  onPressed: menu.tersedia ? onTambahKeranjang : null,
-                  icon: const Icon(Icons.add_shopping_cart, size: 18),
-                  label: const Text('Pesan'),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
+
+          if (!menu.tersedia)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade700,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'Habis',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
