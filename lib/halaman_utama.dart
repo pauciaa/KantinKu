@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'model_menu.dart';
+import 'format_harga.dart';
+import 'halaman_keranjang.dart';
 import 'halaman_menu.dart';
 import 'model_keranjang.dart';
 
@@ -178,28 +180,55 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     );
   }
 
-  Widget _halamanKeranjang() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.shopping_cart_outlined,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 12),
-          Text(
-            'Halaman Keranjang',
-            style: TextStyle(fontSize: 18),
-          ),
-          SizedBox(height: 4),
-          Text(
-            'Fitur keranjang akan diintegrasikan kemudian.',
-            textAlign: TextAlign.center,
-          ),
-        ],
+  void _tambahJumlah(ItemPesanan item) {
+    setState(() {
+      item.jumlah++;
+    });
+  }
+
+  void _kurangiJumlah(ItemPesanan item) {
+    setState(() {
+      if (item.jumlah > 1) item.jumlah--;
+    });
+  }
+
+  void _hapusDariKeranjang(ItemPesanan item) {
+    final posisi = _keranjang.indexOf(item);
+    setState(() {
+      _keranjang.removeAt(posisi);
+    });
+
+    _tampilkanSnackBar(
+      '${item.menu.nama} dihapus dari keranjang',
+      aksi: SnackBarAction(
+        label: 'Urungkan',
+        onPressed: () => _kembalikanKeKeranjang(item, posisi),
       ),
+    );
+  }
+
+  void _kembalikanKeKeranjang(ItemPesanan item, int posisi) {
+    setState(() {
+      // Jika menu yang sama sudah ditambah lagi, gabungkan jumlahnya.
+      final index =
+          _keranjang.indexWhere((lain) => lain.menu.id == item.menu.id);
+      if (index != -1) {
+        _keranjang[index].jumlah += item.jumlah;
+      } else {
+        _keranjang.insert(posisi.clamp(0, _keranjang.length), item);
+      }
+    });
+  }
+
+  void _pesanSekarang() {
+    final total =
+        _keranjang.fold(0, (total, item) => total + item.subtotal);
+    setState(() {
+      _keranjang.clear();
+    });
+
+    _tampilkanSnackBar(
+      'Pesanan dibuat (${formatRupiah(total)}). Ambil saat jam istirahat!',
     );
   }
 
@@ -238,7 +267,14 @@ class _HalamanUtamaState extends State<HalamanUtama> {
             daftarMenu: _daftarMenu,
             onTambah: _tambahKeKeranjang,
           ),
-          _halamanKeranjang(),
+          HalamanKeranjang(
+            keranjang: _keranjang,
+            onTambah: _tambahJumlah,
+            onKurang: _kurangiJumlah,
+            onHapus: _hapusDariKeranjang,
+            onPesan: _pesanSekarang,
+            onLihatMenu: () => _ubahHalaman(0),
+          ),
           _halamanProfil(),
         ],
       ),
