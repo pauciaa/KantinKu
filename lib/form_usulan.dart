@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 
 import 'model_menu.dart';
 
-/// Form usulan menu baru yang ditampilkan di dalam bottom sheet.
+/// Form usulan menu baru yang dibuka sebagai halaman lewat Navigator.push.
 ///
-/// Jika dikirim, sheet ditutup dengan mengembalikan [Menu] hasil usulan.
+/// Jika dikirim, halaman ditutup dengan mengembalikan [Menu] hasil usulan.
 class FormUsulan extends StatefulWidget {
   const FormUsulan({super.key});
 

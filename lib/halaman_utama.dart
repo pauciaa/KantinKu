@@ -226,14 +226,22 @@ class _HalamanUtamaState extends State<HalamanUtama> {
   }
 
   Future<void> _bukaFormUsulan() async {
-    final usulan = await showModalBottomSheet<Menu>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) => const FormUsulan(),
+    final usulan = await Navigator.push<Menu>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          appBar: AppBar(),
+          resizeToAvoidBottomInset: false,
+          body: const FormUsulan(),
+        ),
+      ),
     );
 
     if (usulan == null || !mounted) return;
+
+    setState(() {
+      _daftarMenu.insert(0, usulan);
+    });
 
     _tampilkanSnackBar(
       'Usulan "${usulan.nama}" untuk ${usulan.kantin} terkirim. Terima kasih!',
