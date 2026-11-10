@@ -158,6 +158,10 @@ class _HalamanUtamaState extends State<HalamanUtama> {
           content: Text(pesan),
           behavior: SnackBarBehavior.floating,
           action: aksi,
+          // Sejak Flutter 3.3x, SnackBar yang punya aksi tidak hilang
+          // sendiri. Paksa tetap hilang otomatis agar tidak menutupi
+          // bar total di keranjang.
+          persist: false,
         ),
       );
   }
