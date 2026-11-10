@@ -1,30 +1,51 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:kantinku/main.dart';
+import 'package:kantinku/halaman_detail_menu.dart';
+import 'package:kantinku/halaman_utama.dart';
+import 'package:kantinku/model_menu.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Halaman detail menampilkan data menu dari konstruktor',
+      (tester) async {
+    final menu = Menu(
+      id: 99,
+      nama: 'Es Teh Manis',
+      kantin: 'Kantin Z',
+      kategori: 'Minuman',
+      harga: 5000,
+      tersedia: true,
+      diperbarui: DateTime(2026, 11, 10),
+      gambar: '',
+    );
+    await tester.pumpWidget(MaterialApp(home: HalamanDetailMenu(menu: menu)));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('Kantin Z'), findsOneWidget);
+    expect(find.text('Rp5.000'), findsOneWidget);
+    expect(find.text('10/11/2026'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  testWidgets('Ketuk kartu menu membuka halaman detail', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: HalamanUtama()));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    await tester.tap(find.text('Nasi Goreng'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HalamanDetailMenu), findsOneWidget);
+  });
+
+  testWidgets('Usulan dari form langsung muncul di daftar menu',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: HalamanUtama()));
+
+    await tester.tap(find.text('Usulkan Menu'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).at(0), 'Seblak');
+    await tester.enterText(find.byType(TextField).at(1), 'Kantin D');
+    await tester.enterText(find.byType(TextField).at(2), '12000');
+    await tester.tap(find.text('Kirim'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Seblak'), findsOneWidget);
   });
 }
