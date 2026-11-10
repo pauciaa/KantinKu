@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'model_menu.dart';
+import 'form_usulan.dart';
 import 'format_harga.dart';
 import 'halaman_keranjang.dart';
 import 'halaman_menu.dart';
@@ -220,6 +221,21 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     });
   }
 
+  Future<void> _bukaFormUsulan() async {
+    final usulan = await showModalBottomSheet<Menu>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => const FormUsulan(),
+    );
+
+    if (usulan == null || !mounted) return;
+
+    _tampilkanSnackBar(
+      'Usulan "${usulan.nama}" untuk ${usulan.kantin} terkirim. Terima kasih!',
+    );
+  }
+
   void _pesanSekarang() {
     final total =
         _keranjang.fold(0, (total, item) => total + item.subtotal);
@@ -278,6 +294,14 @@ class _HalamanUtamaState extends State<HalamanUtama> {
           _halamanProfil(),
         ],
       ),
+
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: _bukaFormUsulan,
+              icon: const Icon(Icons.add_comment_outlined),
+              label: const Text('Usulkan Menu'),
+            )
+          : null,
 
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
