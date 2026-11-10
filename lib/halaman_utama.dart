@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'model_menu.dart';
-import 'kartu_menu.dart';
+import 'halaman_menu.dart';
 
 class HalamanUtama extends StatefulWidget {
   const HalamanUtama({super.key});
@@ -141,17 +141,6 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     });
   }
 
-  Widget _halamanMenu() {
-    return ListView.builder(
-      itemCount: _daftarMenu.length,
-      itemBuilder: (context, index) {
-        final menu = _daftarMenu[index];
-
-        return KartuMenu(menu: menu);
-      },
-    );
-  }
-
   Widget _halamanKeranjang() {
     return const Center(
       child: Column(
@@ -208,7 +197,7 @@ class _HalamanUtamaState extends State<HalamanUtama> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          _halamanMenu(),
+          HalamanMenu(daftarMenu: _daftarMenu),
           _halamanKeranjang(),
           _halamanProfil(),
         ],
