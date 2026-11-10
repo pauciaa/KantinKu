@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'filter_kategori.dart';
-import 'halaman_detail_menu.dart';
 import 'kartu_menu.dart';
 import 'model_menu.dart';
 import 'tampilan_kosong.dart';
 
-/// Tab Menu: pencarian, filter kategori, dan daftar menu.
 class HalamanMenu extends StatefulWidget {
   final List<Menu> daftarMenu;
   final ValueChanged<Menu> onTambah;
@@ -28,7 +26,6 @@ class _HalamanMenuState extends State<HalamanMenu> {
   @override
   void initState() {
     super.initState();
-    // Setiap ketikan memicu build ulang agar daftar langsung terfilter.
     _cariController.addListener(_saatTeksBerubah);
   }
 
@@ -60,11 +57,13 @@ class _HalamanMenuState extends State<HalamanMenu> {
     final kataKunci = _cariController.text.trim().toLowerCase();
 
     return widget.daftarMenu.where((menu) {
-      final cocokKategori =
-          _kategoriTerpilih == 'Semua' || menu.kategori == _kategoriTerpilih;
+      final bool cocokKategori = _kategoriTerpilih == 'Semua' ||
+          menu.kategori.toLowerCase() == _kategoriTerpilih.toLowerCase();
+
       final cocokKataKunci = kataKunci.isEmpty ||
           menu.nama.toLowerCase().contains(kataKunci) ||
           menu.kantin.toLowerCase().contains(kataKunci);
+
       return cocokKategori && cocokKataKunci;
     }).toList();
   }
@@ -122,17 +121,9 @@ class _HalamanMenuState extends State<HalamanMenu> {
                   itemCount: hasil.length,
                   itemBuilder: (context, index) {
                     final menu = hasil[index];
-                    return GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => HalamanDetailMenu(menu: menu),
-                        ),
-                      ),
-                      child: KartuMenu(
-                        menu: menu,
-                        onTambah: () => widget.onTambah(menu),
-                      ),
+                    return KartuMenu(
+                      menu: menu,
+                      onTambah: () => widget.onTambah(menu),
                     );
                   },
                 ),

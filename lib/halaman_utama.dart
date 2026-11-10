@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'layanan_menu.dart';
 import 'model_menu.dart';
 import 'form_usulan.dart';
 import 'format_harga.dart';
@@ -7,7 +9,9 @@ import 'halaman_menu.dart';
 import 'model_keranjang.dart';
 
 class HalamanUtama extends StatefulWidget {
-  const HalamanUtama({super.key});
+  const HalamanUtama({super.key, this.layananMenu});
+
+  final LayananMenu? layananMenu;
 
   @override
   State<HalamanUtama> createState() => _HalamanUtamaState();
@@ -15,131 +19,28 @@ class HalamanUtama extends StatefulWidget {
 
 class _HalamanUtamaState extends State<HalamanUtama> {
   int _selectedIndex = 0;
-
-  final List<Menu> _daftarMenu = [
-    Menu(
-      id: 1,
-      nama: 'Nasi Ayam Goreng',
-      kantin: 'Kantin A',
-      kategori: 'Makanan',
-      harga: 15000,
-      tersedia: true,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 2,
-      nama: 'Nasi Goreng',
-      kantin: 'Kantin A',
-      kategori: 'Makanan',
-      harga: 13000,
-      tersedia: true,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 3,
-      nama: 'Mie Ayam',
-      kantin: 'Kantin B',
-      kategori: 'Makanan',
-      harga: 12000,
-      tersedia: true,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 4,
-      nama: 'Soto Ayam',
-      kantin: 'Kantin B',
-      kategori: 'Makanan',
-      harga: 14000,
-      tersedia: false,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 5,
-      nama: 'Nasi Pecel',
-      kantin: 'Kantin C',
-      kategori: 'Makanan',
-      harga: 10000,
-      tersedia: true,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 6,
-      nama: 'Es Teh',
-      kantin: 'Kantin A',
-      kategori: 'Minuman',
-      harga: 4000,
-      tersedia: true,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 7,
-      nama: 'Es Jeruk',
-      kantin: 'Kantin A',
-      kategori: 'Minuman',
-      harga: 5000,
-      tersedia: true,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 8,
-      nama: 'Air Mineral',
-      kantin: 'Kantin B',
-      kategori: 'Minuman',
-      harga: 3000,
-      tersedia: true,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 9,
-      nama: 'Jus Alpukat',
-      kantin: 'Kantin C',
-      kategori: 'Minuman',
-      harga: 8000,
-      tersedia: false,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 10,
-      nama: 'Pisang Goreng',
-      kantin: 'Kantin A',
-      kategori: 'Camilan',
-      harga: 6000,
-      tersedia: true,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 11,
-      nama: 'Risol',
-      kantin: 'Kantin B',
-      kategori: 'Camilan',
-      harga: 3000,
-      tersedia: true,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-    Menu(
-      id: 12,
-      nama: 'Tahu Isi',
-      kantin: 'Kantin C',
-      kategori: 'Camilan',
-      harga: 4000,
-      tersedia: false,
-      diperbarui: DateTime(2026, 10, 1),
-      gambar: '',
-    ),
-  ];
+  late final LayananMenu _layananMenu = widget.layananMenu ?? LayananMenu();
+  late Future<List<Menu>> _futureMenu;
 
   final List<ItemPesanan> _keranjang = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _muatMenu();
+  }
+
+  @override
+  void dispose() {
+    _layananMenu.dispose();
+    super.dispose();
+  }
+
+  void _muatMenu() {
+    setState(() {
+      _futureMenu = _layananMenu.ambilMenu();
+    });
+  }
 
   int get _jumlahItemKeranjang =>
       _keranjang.fold(0, (total, item) => total + item.jumlah);
@@ -158,9 +59,6 @@ class _HalamanUtamaState extends State<HalamanUtama> {
           content: Text(pesan),
           behavior: SnackBarBehavior.floating,
           action: aksi,
-          // Sejak Flutter 3.3x, SnackBar yang punya aksi tidak hilang
-          // sendiri. Paksa tetap hilang otomatis agar tidak menutupi
-          // bar total di keranjang.
           persist: false,
         ),
       );
@@ -214,7 +112,6 @@ class _HalamanUtamaState extends State<HalamanUtama> {
 
   void _kembalikanKeKeranjang(ItemPesanan item, int posisi) {
     setState(() {
-      // Jika menu yang sama sudah ditambah lagi, gabungkan jumlahnya.
       final index =
           _keranjang.indexWhere((lain) => lain.menu.id == item.menu.id);
       if (index != -1) {
@@ -226,22 +123,14 @@ class _HalamanUtamaState extends State<HalamanUtama> {
   }
 
   Future<void> _bukaFormUsulan() async {
-    final usulan = await Navigator.push<Menu>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => Scaffold(
-          appBar: AppBar(),
-          resizeToAvoidBottomInset: false,
-          body: const FormUsulan(),
-        ),
-      ),
+    final usulan = await showModalBottomSheet<Menu>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => const FormUsulan(),
     );
 
     if (usulan == null || !mounted) return;
-
-    setState(() {
-      _daftarMenu.insert(0, usulan);
-    });
 
     _tampilkanSnackBar(
       'Usulan "${usulan.nama}" untuk ${usulan.kantin} terkirim. Terima kasih!',
@@ -287,14 +176,10 @@ class _HalamanUtamaState extends State<HalamanUtama> {
         title: const Text('KantinKu'),
         centerTitle: true,
       ),
-
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          HalamanMenu(
-            daftarMenu: _daftarMenu,
-            onTambah: _tambahKeKeranjang,
-          ),
+          _kontenMenuDenganFutureBuilder(),
           HalamanKeranjang(
             keranjang: _keranjang,
             onTambah: _tambahJumlah,
@@ -306,7 +191,6 @@ class _HalamanUtamaState extends State<HalamanUtama> {
           _halamanProfil(),
         ],
       ),
-
       floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton.extended(
               onPressed: _bukaFormUsulan,
@@ -314,7 +198,6 @@ class _HalamanUtamaState extends State<HalamanUtama> {
               label: const Text('Usulkan Menu'),
             )
           : null,
-
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _ubahHalaman,
@@ -337,6 +220,70 @@ class _HalamanUtamaState extends State<HalamanUtama> {
           ),
         ],
       ),
+    );
+  }
+
+  /// [P07] Menangani 3 state menggunakan FutureBuilder: memuat, gagal (dengan tombol Coba lagi), dan berhasil.
+  Widget _kontenMenuDenganFutureBuilder() {
+    return FutureBuilder<List<Menu>>(
+      future: _futureMenu,
+      builder: (context, snapshot) {
+        // State 1: Memuat (Loading)
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 12),
+                Text('Mengambil menu dari server...'),
+              ],
+            ),
+          );
+        }
+
+        // State 2: Gagal (Error)
+        if (snapshot.hasError) {
+          final pesanError = snapshot.error is LayananMenuException
+              ? (snapshot.error as LayananMenuException).pesan
+              : snapshot.error.toString();
+
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.cloud_off_outlined, size: 48),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Menu gagal dimuat',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(pesanError, textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _muatMenu,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Coba lagi'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // State 3: Berhasil (Success)
+        final daftarMenu = snapshot.data ?? [];
+        return HalamanMenu(
+          daftarMenu: daftarMenu,
+          onTambah: _tambahKeKeranjang,
+        );
+      },
     );
   }
 }

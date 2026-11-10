@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'layanan_menu.dart';
 import 'halaman_utama.dart';
 
 void main() {
@@ -7,12 +8,14 @@ void main() {
 }
 
 class KantinKuP04App extends StatelessWidget {
-  const KantinKuP04App({super.key});
+  const KantinKuP04App({super.key, this.layananMenu});
+
+  final LayananMenu? layananMenu;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'KantinKu P04',
+      title: 'KantinKu',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -20,7 +23,7 @@ class KantinKuP04App extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HalamanUtama(),
+      home: HalamanUtama(layananMenu: layananMenu),
     );
   }
 }
