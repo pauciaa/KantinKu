@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'model_menu.dart';
 import 'halaman_menu.dart';
+import 'model_keranjang.dart';
 
 class HalamanUtama extends StatefulWidget {
   const HalamanUtama({super.key});
@@ -135,10 +136,46 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     ),
   ];
 
+  final List<ItemPesanan> _keranjang = [];
+
+  int get _jumlahItemKeranjang =>
+      _keranjang.fold(0, (total, item) => total + item.jumlah);
+
   void _ubahHalaman(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _tampilkanSnackBar(String pesan, {SnackBarAction? aksi}) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(pesan),
+          behavior: SnackBarBehavior.floating,
+          action: aksi,
+        ),
+      );
+  }
+
+  void _tambahKeKeranjang(Menu menu) {
+    setState(() {
+      final index = _keranjang.indexWhere((item) => item.menu.id == menu.id);
+      if (index == -1) {
+        _keranjang.add(ItemPesanan(menu: menu));
+      } else {
+        _keranjang[index].jumlah++;
+      }
+    });
+
+    _tampilkanSnackBar(
+      '${menu.nama} ditambahkan ke keranjang',
+      aksi: SnackBarAction(
+        label: 'Lihat',
+        onPressed: () => _ubahHalaman(1),
+      ),
+    );
   }
 
   Widget _halamanKeranjang() {
@@ -197,7 +234,10 @@ class _HalamanUtamaState extends State<HalamanUtama> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          HalamanMenu(daftarMenu: _daftarMenu),
+          HalamanMenu(
+            daftarMenu: _daftarMenu,
+            onTambah: _tambahKeKeranjang,
+          ),
           _halamanKeranjang(),
           _halamanProfil(),
         ],
@@ -206,16 +246,20 @@ class _HalamanUtamaState extends State<HalamanUtama> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _ubahHalaman,
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.restaurant_menu),
             label: 'Menu',
           ),
           NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
+            icon: Badge(
+              isLabelVisible: _jumlahItemKeranjang > 0,
+              label: Text('$_jumlahItemKeranjang'),
+              child: const Icon(Icons.shopping_cart_outlined),
+            ),
             label: 'Keranjang',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.person_outline),
             label: 'Profil',
           ),

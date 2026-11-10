@@ -8,10 +8,12 @@ import 'tampilan_kosong.dart';
 /// Tab Menu: pencarian, filter kategori, dan daftar menu.
 class HalamanMenu extends StatefulWidget {
   final List<Menu> daftarMenu;
+  final ValueChanged<Menu> onTambah;
 
   const HalamanMenu({
     super.key,
     required this.daftarMenu,
+    required this.onTambah,
   });
 
   @override
@@ -118,7 +120,11 @@ class _HalamanMenuState extends State<HalamanMenu> {
                   padding: const EdgeInsets.only(bottom: 96),
                   itemCount: hasil.length,
                   itemBuilder: (context, index) {
-                    return KartuMenu(menu: hasil[index]);
+                    final menu = hasil[index];
+                    return KartuMenu(
+                      menu: menu,
+                      onTambah: () => widget.onTambah(menu),
+                    );
                   },
                 ),
         ),
