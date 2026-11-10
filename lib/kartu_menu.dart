@@ -1,30 +1,18 @@
 import 'package:flutter/material.dart';
+import 'format_harga.dart';
 import 'model_menu.dart';
 
 class KartuMenu extends StatelessWidget {
   final Menu menu;
 
+  /// Dipanggil saat tombol + ditekan. Jika null, tombol tidak ditampilkan.
+  final VoidCallback? onTambah;
+
   const KartuMenu({
     super.key,
     required this.menu,
+    this.onTambah,
   });
-
-  String _formatHarga(int harga) {
-    final hargaString = harga.toString();
-    final hasil = StringBuffer();
-
-    for (int i = 0; i < hargaString.length; i++) {
-      hasil.write(hargaString[i]);
-
-      final sisa = hargaString.length - i - 1;
-
-      if (sisa > 0 && sisa % 3 == 0) {
-        hasil.write('.');
-      }
-    }
-
-    return 'Rp${hasil.toString()}';
-  }
 
   Widget _gambarMenu() {
     if (menu.gambar.isEmpty) {
@@ -120,13 +108,27 @@ class KartuMenu extends StatelessWidget {
 
                         const SizedBox(height: 8),
 
-                        Text(
-                          _formatHarga(menu.harga),
-                          style: const TextStyle(
-                            color: Colors.deepOrange,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                formatRupiah(menu.harga),
+                                style: const TextStyle(
+                                  color: Colors.deepOrange,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ),
+                            if (onTambah != null)
+                              IconButton.filledTonal(
+                                tooltip: menu.tersedia
+                                    ? 'Tambah ke keranjang'
+                                    : 'Menu habis',
+                                icon: const Icon(Icons.add),
+                                onPressed: menu.tersedia ? onTambah : null,
+                              ),
+                          ],
                         ),
                       ],
                     ),

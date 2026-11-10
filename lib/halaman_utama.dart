@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'model_menu.dart';
-import 'kartu_menu.dart';
+import 'form_usulan.dart';
+import 'format_harga.dart';
+import 'halaman_keranjang.dart';
+import 'halaman_menu.dart';
+import 'model_keranjang.dart';
 
 class HalamanUtama extends StatefulWidget {
   const HalamanUtama({super.key});
@@ -135,45 +139,116 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     ),
   ];
 
+  final List<ItemPesanan> _keranjang = [];
+
+  int get _jumlahItemKeranjang =>
+      _keranjang.fold(0, (total, item) => total + item.jumlah);
+
   void _ubahHalaman(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  Widget _halamanMenu() {
-    return ListView.builder(
-      itemCount: _daftarMenu.length,
-      itemBuilder: (context, index) {
-        final menu = _daftarMenu[index];
+  void _tampilkanSnackBar(String pesan, {SnackBarAction? aksi}) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(pesan),
+          behavior: SnackBarBehavior.floating,
+          action: aksi,
+          // Sejak Flutter 3.3x, SnackBar yang punya aksi tidak hilang
+          // sendiri. Paksa tetap hilang otomatis agar tidak menutupi
+          // bar total di keranjang.
+          persist: false,
+        ),
+      );
+  }
 
-        return KartuMenu(menu: menu);
-      },
+  void _tambahKeKeranjang(Menu menu) {
+    setState(() {
+      final index = _keranjang.indexWhere((item) => item.menu.id == menu.id);
+      if (index == -1) {
+        _keranjang.add(ItemPesanan(menu: menu));
+      } else {
+        _keranjang[index].jumlah++;
+      }
+    });
+
+    _tampilkanSnackBar(
+      '${menu.nama} ditambahkan ke keranjang',
+      aksi: SnackBarAction(
+        label: 'Lihat',
+        onPressed: () => _ubahHalaman(1),
+      ),
     );
   }
 
-  Widget _halamanKeranjang() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.shopping_cart_outlined,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 12),
-          Text(
-            'Halaman Keranjang',
-            style: TextStyle(fontSize: 18),
-          ),
-          SizedBox(height: 4),
-          Text(
-            'Fitur keranjang akan diintegrasikan kemudian.',
-            textAlign: TextAlign.center,
-          ),
-        ],
+  void _tambahJumlah(ItemPesanan item) {
+    setState(() {
+      item.jumlah++;
+    });
+  }
+
+  void _kurangiJumlah(ItemPesanan item) {
+    setState(() {
+      if (item.jumlah > 1) item.jumlah--;
+    });
+  }
+
+  void _hapusDariKeranjang(ItemPesanan item) {
+    final posisi = _keranjang.indexOf(item);
+    setState(() {
+      _keranjang.removeAt(posisi);
+    });
+
+    _tampilkanSnackBar(
+      '${item.menu.nama} dihapus dari keranjang',
+      aksi: SnackBarAction(
+        label: 'Urungkan',
+        onPressed: () => _kembalikanKeKeranjang(item, posisi),
       ),
+    );
+  }
+
+  void _kembalikanKeKeranjang(ItemPesanan item, int posisi) {
+    setState(() {
+      // Jika menu yang sama sudah ditambah lagi, gabungkan jumlahnya.
+      final index =
+          _keranjang.indexWhere((lain) => lain.menu.id == item.menu.id);
+      if (index != -1) {
+        _keranjang[index].jumlah += item.jumlah;
+      } else {
+        _keranjang.insert(posisi.clamp(0, _keranjang.length), item);
+      }
+    });
+  }
+
+  Future<void> _bukaFormUsulan() async {
+    final usulan = await showModalBottomSheet<Menu>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => const FormUsulan(),
+    );
+
+    if (usulan == null || !mounted) return;
+
+    _tampilkanSnackBar(
+      'Usulan "${usulan.nama}" untuk ${usulan.kantin} terkirim. Terima kasih!',
+    );
+  }
+
+  void _pesanSekarang() {
+    final total =
+        _keranjang.fold(0, (total, item) => total + item.subtotal);
+    setState(() {
+      _keranjang.clear();
+    });
+
+    _tampilkanSnackBar(
+      'Pesanan dibuat (${formatRupiah(total)}). Ambil saat jam istirahat!',
     );
   }
 
@@ -208,25 +283,47 @@ class _HalamanUtamaState extends State<HalamanUtama> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          _halamanMenu(),
-          _halamanKeranjang(),
+          HalamanMenu(
+            daftarMenu: _daftarMenu,
+            onTambah: _tambahKeKeranjang,
+          ),
+          HalamanKeranjang(
+            keranjang: _keranjang,
+            onTambah: _tambahJumlah,
+            onKurang: _kurangiJumlah,
+            onHapus: _hapusDariKeranjang,
+            onPesan: _pesanSekarang,
+            onLihatMenu: () => _ubahHalaman(0),
+          ),
           _halamanProfil(),
         ],
       ),
 
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: _bukaFormUsulan,
+              icon: const Icon(Icons.add_comment_outlined),
+              label: const Text('Usulkan Menu'),
+            )
+          : null,
+
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: _ubahHalaman,
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.restaurant_menu),
             label: 'Menu',
           ),
           NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
+            icon: Badge(
+              isLabelVisible: _jumlahItemKeranjang > 0,
+              label: Text('$_jumlahItemKeranjang'),
+              child: const Icon(Icons.shopping_cart_outlined),
+            ),
             label: 'Keranjang',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.person_outline),
             label: 'Profil',
           ),
