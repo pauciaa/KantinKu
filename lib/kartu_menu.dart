@@ -64,12 +64,15 @@ class KartuMenu extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(
-                    width: 100,
-                    height: 100,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: _gambarMenu(),
+                  Hero(
+                    tag: 'menu-${menu.id}',
+                    child: SizedBox(
+                      width: 100,
+                      height: 100,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: _gambarMenu(),
+                      ),
                     ),
                   ),
 
