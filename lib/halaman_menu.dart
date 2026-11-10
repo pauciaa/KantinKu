@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'filter_kategori.dart';
+import 'halaman_detail_menu.dart';
 import 'kartu_menu.dart';
 import 'model_menu.dart';
 import 'tampilan_kosong.dart';
@@ -121,9 +122,17 @@ class _HalamanMenuState extends State<HalamanMenu> {
                   itemCount: hasil.length,
                   itemBuilder: (context, index) {
                     final menu = hasil[index];
-                    return KartuMenu(
-                      menu: menu,
-                      onTambah: () => widget.onTambah(menu),
+                    return GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => HalamanDetailMenu(menu: menu),
+                        ),
+                      ),
+                      child: KartuMenu(
+                        menu: menu,
+                        onTambah: () => widget.onTambah(menu),
+                      ),
                     );
                   },
                 ),
