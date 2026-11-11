@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'theme.dart';
 import 'layanan_menu.dart';
 import 'halaman_utama.dart';
 
@@ -17,12 +18,9 @@ class KantinKuP04App extends StatelessWidget {
     return MaterialApp(
       title: 'KantinKu',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepOrange,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.lightTheme,      // Tema Mode Terang (P06)
+      darkTheme: AppTheme.darkTheme,    // Tema Mode Gelap (P06)
+      themeMode: ThemeMode.system,     // Otomatis menyesuaikan mode perangkat
       home: HalamanUtama(layananMenu: layananMenu),
     );
   }

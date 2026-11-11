@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'package:kantinku/halaman_detail_menu.dart';
-import 'package:kantinku/halaman_utama.dart';
 import 'package:kantinku/layanan_menu.dart';
 import 'package:kantinku/main.dart';
 import 'package:kantinku/model_menu.dart';

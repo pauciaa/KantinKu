@@ -1,0 +1,14 @@
+[
+  {"id": "m1", "nama": "Nasi Goreng Kantin", "kantin": "Kantin Ibu Agus", "kategori": "Makanan", "harga": 15000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m2", "nama": "Ayam Geprek Sambal Ijo", "kantin": "Kantin Ibu Agus", "kategori": "Makanan", "harga": 18000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m3", "nama": "Mie Ayam Bakso", "kantin": "Kantin Pak Kumis", "kategori": "Makanan", "harga": 14000, "tersedia": false, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m4", "nama": "Soto Ayam Madura", "kantin": "Kantin Pak Kumis", "kategori": "Makanan", "harga": 16000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m5", "nama": "Es Teh Manis", "kantin": "Kantin Ibu Agus", "kategori": "Minuman", "harga": 4000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m6", "nama": "Es Jeruk Peras", "kantin": "Kantin Pak Kumis", "kategori": "Minuman", "harga": 5000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m7", "nama": "Kopi Susu Gula Aren", "kantin": "Kantin Teknik", "kategori": "Minuman", "harga": 10000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m8", "nama": "Jus Alpukat", "kantin": "Kantin Teknik", "kategori": "Minuman", "harga": 12000, "tersedia": false, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m9", "nama": "Roti Bakar Cokelat", "kantin": "Kantin Ibu Agus", "kategori": "Camilan", "harga": 8000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m10", "nama": "Kentang Goreng", "kantin": "Kantin Teknik", "kategori": "Camilan", "harga": 10000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m11", "nama": "Pisang Goreng Keju", "kantin": "Kantin Pak Kumis", "kategori": "Camilan", "harga": 7000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"},
+  {"id": "m12", "nama": "Cireng Rujak", "kantin": "Kantin Ibu Agus", "kategori": "Camilan", "harga": 6000, "tersedia": true, "diperbarui": "2026-11-10T08:00:00.000Z", "gambar": "assets/images/logo.png"}
+]
