@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'format_harga.dart';
-import 'halaman_detail_menu.dart';
 import 'model_menu.dart';
 
 class KartuMenu extends StatelessWidget {
@@ -9,46 +8,53 @@ class KartuMenu extends StatelessWidget {
   /// Dipanggil saat tombol + ditekan. Jika null, tombol tidak ditampilkan.
   final VoidCallback? onTambah;
 
+  /// Dipanggil saat kartu diketuk. Null di halaman detail, agar kartu di
+  /// sana tidak membuka halaman detail lagi.
+  final VoidCallback? onTap;
+
   const KartuMenu({
     super.key,
     required this.menu,
     this.onTambah,
+    this.onTap,
   });
 
-  Widget _gambarMenu() {
-    if (menu.gambar.isEmpty) {
-      return Container(
-        color: Colors.orange.shade50,
-        child: const Center(
-          child: Icon(
-            Icons.restaurant,
-            size: 48,
-            color: Colors.deepOrange,
-          ),
+  Widget _gambarCadangan(ColorScheme skema) {
+    return Container(
+      color: skema.primaryContainer,
+      child: Center(
+        child: Icon(
+          Icons.restaurant,
+          size: 48,
+          color: skema.onPrimaryContainer,
         ),
+      ),
+    );
+  }
+
+  /// Gambar menu: kosong -> ikon, "assets/..." -> aset lokal, selain itu URL.
+  Widget _gambarMenu(ColorScheme skema) {
+    if (menu.gambar.isEmpty) return _gambarCadangan(skema);
+
+    if (menu.gambar.startsWith('assets/')) {
+      return Image.asset(
+        menu.gambar,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _gambarCadangan(skema),
       );
     }
 
     return Image.network(
       menu.gambar,
       fit: BoxFit.cover,
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          color: Colors.orange.shade50,
-          child: const Center(
-            child: Icon(
-              Icons.restaurant,
-              size: 48,
-              color: Colors.deepOrange,
-            ),
-          ),
-        );
-      },
+      errorBuilder: (_, __, ___) => _gambarCadangan(skema),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final skema = Theme.of(context).colorScheme;
+
     return Card(
       margin: const EdgeInsets.symmetric(
         horizontal: 12,
@@ -57,14 +63,7 @@ class KartuMenu extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       elevation: 2,
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => HalamanDetailMenu(menu: menu),
-            ),
-          );
-        },
+        onTap: onTap,
         child: Stack(
           children: [
             Opacity(
@@ -74,12 +73,16 @@ class KartuMenu extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      width: 100,
-                      height: 100,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: _gambarMenu(),
+                    // Animasi Hero: gambar "terbang" dari kartu ke halaman detail.
+                    Hero(
+                      tag: 'menu-${menu.id}',
+                      child: SizedBox(
+                        width: 100,
+                        height: 100,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: _gambarMenu(skema),
+                        ),
                       ),
                     ),
 
@@ -102,7 +105,7 @@ class KartuMenu extends StatelessWidget {
                           Text(
                             menu.kantin,
                             style: TextStyle(
-                              color: Colors.grey.shade700,
+                              color: skema.onSurfaceVariant,
                             ),
                           ),
 
@@ -111,7 +114,7 @@ class KartuMenu extends StatelessWidget {
                           Text(
                             menu.kategori,
                             style: TextStyle(
-                              color: Colors.grey.shade600,
+                              color: skema.onSurfaceVariant,
                               fontSize: 12,
                             ),
                           ),
@@ -123,8 +126,8 @@ class KartuMenu extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   formatRupiah(menu.harga),
-                                  style: const TextStyle(
-                                    color: Colors.deepOrange,
+                                  style: TextStyle(
+                                    color: skema.primary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 15,
                                   ),
@@ -158,13 +161,13 @@ class KartuMenu extends StatelessWidget {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade700,
+                    color: skema.error,
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
+                  child: Text(
                     'Habis',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: skema.onError,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
