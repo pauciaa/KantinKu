@@ -35,10 +35,10 @@ class ItemKeranjang extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
+                color: skema.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.restaurant, color: Colors.deepOrange),
+              child: Icon(Icons.restaurant, color: skema.onPrimaryContainer),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -59,8 +59,8 @@ class ItemKeranjang extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     formatRupiah(item.subtotal),
-                    style: const TextStyle(
-                      color: Colors.deepOrange,
+                    style: TextStyle(
+                      color: skema.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

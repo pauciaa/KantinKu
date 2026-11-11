@@ -10,7 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.2.1
   http: ^1.2.0
 
 dev_dependencies:
@@ -18,8 +17,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.13.1
-  shelf: ^1.4.1
-  shelf_router: ^1.1.4
 
 flutter_launcher_icons:
   android: "launcher_icon"
@@ -31,3 +28,15 @@ flutter:
   assets:
     - assets/images/
     - assets/icon/
+
+  # Font kustom (P06), lisensi OFL: assets/fonts/OFL.txt
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700

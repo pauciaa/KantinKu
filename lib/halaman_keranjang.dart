@@ -75,10 +75,10 @@ class HalamanKeranjang extends StatelessWidget {
                       ),
                       Text(
                         formatRupiah(_total),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.deepOrange,
+                          color: skema.primary,
                         ),
                       ),
                     ],
