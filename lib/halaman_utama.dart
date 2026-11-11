@@ -6,12 +6,17 @@ import 'form_usulan.dart';
 import 'format_harga.dart';
 import 'halaman_keranjang.dart';
 import 'halaman_menu.dart';
+import 'halaman_profil.dart';
 import 'model_keranjang.dart';
 
 class HalamanUtama extends StatefulWidget {
-  const HalamanUtama({super.key, this.layananMenu});
+  const HalamanUtama({super.key, this.layananMenu, this.onGantiTema});
 
   final LayananMenu? layananMenu;
+
+  /// Dipanggil tombol mode gelap/terang di AppBar dengan tema yang sedang
+  /// tampil. Jika null, tombol tidak ditampilkan.
+  final ValueChanged<Brightness>? onGantiTema;
 
   @override
   State<HalamanUtama> createState() => _HalamanUtamaState();
@@ -21,6 +26,10 @@ class _HalamanUtamaState extends State<HalamanUtama> {
   int _selectedIndex = 0;
   late final LayananMenu _layananMenu = widget.layananMenu ?? LayananMenu();
   late Future<List<Menu>> _futureMenu;
+
+  /// Menu dari form tambah. Disimpan di State agar langsung muncul di daftar,
+  /// walaupun pengiriman ke server gagal.
+  final List<Menu> _menuUsulan = [];
 
   final List<ItemPesanan> _keranjang = [];
 
@@ -36,17 +45,56 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     super.dispose();
   }
 
+  /// Memuat ulang dari awal (dipakai saat pertama dibuka dan tombol Coba lagi).
   void _muatMenu() {
     setState(() {
       _futureMenu = _layananMenu.ambilMenu();
     });
   }
 
+  /// Pull-to-refresh: daftar lama tetap tampil selama data baru diambil.
+  Future<void> _segarkanMenu() async {
+    try {
+      final data = await _layananMenu.ambilMenu();
+      if (!mounted) return;
+      setState(() {
+        _futureMenu = Future.value(data);
+      });
+    } on LayananMenuException catch (e) {
+      if (!mounted) return;
+      _tampilkanSnackBar(e.pesan);
+    }
+  }
+
+  /// Menu usulan ditaruh paling atas, tanpa dobel jika server sudah
+  /// mengembalikannya.
+  List<Menu> _gabungkanDenganUsulan(List<Menu> dariServer) {
+    final idServer = dariServer.map((menu) => menu.id).toSet();
+    return [
+      ..._menuUsulan.where((menu) => !idServer.contains(menu.id)),
+      ...dariServer,
+    ];
+  }
+
   int get _jumlahItemKeranjang =>
       _keranjang.fold(0, (total, item) => total + item.jumlah);
 
+  /// Tombol di AppBar untuk berpindah mode terang/gelap.
+  Widget _tombolTema(BuildContext context) {
+    final gelap = Theme.of(context).brightness == Brightness.dark;
+    return IconButton(
+      tooltip: gelap ? 'Mode terang' : 'Mode gelap',
+      icon: Icon(gelap ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+      onPressed: () => widget.onGantiTema!(Theme.of(context).brightness),
+    );
+  }
+
+  /// Naik setiap kali tab Profil dibuka, agar daftar kantin selalu terbaru.
+  int _muatUlangProfil = 0;
+
   void _ubahHalaman(int index) {
     setState(() {
+      if (index == 2 && _selectedIndex != 2) _muatUlangProfil++;
       _selectedIndex = index;
     });
   }
@@ -122,19 +170,42 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     });
   }
 
+  /// Membuka halaman form tambah. Data dikembalikan lewat
+  /// Navigator.pop(context, usulan), lalu langsung dimasukkan ke daftar
+  /// dan dikirim ke server dengan POST.
   Future<void> _bukaFormUsulan() async {
-    final usulan = await showModalBottomSheet<Menu>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) => const FormUsulan(),
+    final usulan = await Navigator.push<Menu>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          appBar: AppBar(),
+          resizeToAvoidBottomInset: false,
+          body: const FormUsulan(),
+        ),
+      ),
     );
 
     if (usulan == null || !mounted) return;
 
-    _tampilkanSnackBar(
-      'Usulan "${usulan.nama}" untuk ${usulan.kantin} terkirim. Terima kasih!',
-    );
+    setState(() {
+      _menuUsulan.insert(0, usulan);
+    });
+    _tampilkanSnackBar('Mengirim usulan "${usulan.nama}" ke server...');
+
+    try {
+      final tersimpan = await _layananMenu.kirimUsulan(usulan);
+      if (!mounted) return;
+      setState(() {
+        final index = _menuUsulan.indexOf(usulan);
+        if (index != -1) _menuUsulan[index] = tersimpan;
+      });
+      _tampilkanSnackBar(
+        'Usulan "${tersimpan.nama}" untuk ${tersimpan.kantin} tersimpan di server.',
+      );
+    } on LayananMenuException catch (e) {
+      if (!mounted) return;
+      _tampilkanSnackBar('Usulan hanya tersimpan di aplikasi. ${e.pesan}');
+    }
   }
 
   void _pesanSekarang() {
@@ -149,32 +220,15 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     );
   }
 
-  Widget _halamanProfil() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.person_outline,
-            size: 64,
-            color: Colors.grey,
-          ),
-          SizedBox(height: 12),
-          Text(
-            'Halaman Profil',
-            style: TextStyle(fontSize: 18),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('KantinKu'),
         centerTitle: true,
+        actions: [
+          if (widget.onGantiTema != null) _tombolTema(context),
+        ],
       ),
       body: IndexedStack(
         index: _selectedIndex,
@@ -188,7 +242,10 @@ class _HalamanUtamaState extends State<HalamanUtama> {
             onPesan: _pesanSekarang,
             onLihatMenu: () => _ubahHalaman(0),
           ),
-          _halamanProfil(),
+          HalamanProfil(
+            layananMenu: _layananMenu,
+            muatUlangKe: _muatUlangProfil,
+          ),
         ],
       ),
       floatingActionButton: _selectedIndex == 0
@@ -228,8 +285,10 @@ class _HalamanUtamaState extends State<HalamanUtama> {
     return FutureBuilder<List<Menu>>(
       future: _futureMenu,
       builder: (context, snapshot) {
-        // State 1: Memuat (Loading)
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        // State 1: Memuat (Loading). Saat pull-to-refresh, data lama masih
+        // ada, jadi daftar tidak diganti spinner.
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -278,10 +337,11 @@ class _HalamanUtamaState extends State<HalamanUtama> {
         }
 
         // State 3: Berhasil (Success)
-        final daftarMenu = snapshot.data ?? [];
+        final daftarMenu = _gabungkanDenganUsulan(snapshot.data ?? []);
         return HalamanMenu(
           daftarMenu: daftarMenu,
           onTambah: _tambahKeKeranjang,
+          onRefresh: _segarkanMenu,
         );
       },
     );

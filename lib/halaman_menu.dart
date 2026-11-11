@@ -1,18 +1,24 @@
 import 'package:flutter/material.dart';
 
 import 'filter_kategori.dart';
+import 'halaman_detail_menu.dart';
 import 'kartu_menu.dart';
 import 'model_menu.dart';
 import 'tampilan_kosong.dart';
 
+/// Tab Menu: pencarian, filter kategori, dan daftar menu dari server.
 class HalamanMenu extends StatefulWidget {
   final List<Menu> daftarMenu;
   final ValueChanged<Menu> onTambah;
+
+  /// Dipanggil saat daftar ditarik ke bawah (pull-to-refresh).
+  final Future<void> Function() onRefresh;
 
   const HalamanMenu({
     super.key,
     required this.daftarMenu,
     required this.onTambah,
+    required this.onRefresh,
   });
 
   @override
@@ -116,16 +122,26 @@ class _HalamanMenuState extends State<HalamanMenu> {
                   labelTombol: 'Reset filter',
                   onTombol: _resetFilter,
                 )
-              : ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 96),
-                  itemCount: hasil.length,
-                  itemBuilder: (context, index) {
-                    final menu = hasil[index];
-                    return KartuMenu(
-                      menu: menu,
-                      onTambah: () => widget.onTambah(menu),
-                    );
-                  },
+              : RefreshIndicator(
+                  onRefresh: widget.onRefresh,
+                  child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 96),
+                    itemCount: hasil.length,
+                    itemBuilder: (context, index) {
+                      final menu = hasil[index];
+                      return KartuMenu(
+                        menu: menu,
+                        onTambah: () => widget.onTambah(menu),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => HalamanDetailMenu(menu: menu),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
         ),
       ],

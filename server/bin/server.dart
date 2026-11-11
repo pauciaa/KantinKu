@@ -1,40 +1,44 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:kantinku_server/kantinku_api.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
-import 'package:shelf_router/shelf_router.dart';
 
-void main() async {
-  final router = Router();
+/// Menjalankan server KantinKu.
+///
+///   cd server
+///   dart pub get
+///   dart run bin/server.dart
+///
+/// Port bisa diganti lewat variabel lingkungan PORT (bawaan 8080).
+Future<void> main() async {
+  final daftarMenu = await _bacaDataAwal();
 
-  // Load data JSON
-  final jsonFile = File('server/data/kantinku.json');
-  final List<dynamic> menuList = jsonDecode(await jsonFile.readAsString());
+  final handler = const Pipeline()
+      .addMiddleware(logRequests())
+      .addMiddleware(corsHeaders())
+      .addHandler(buatRouter(daftarMenu).call);
 
-  // 1. GET /api/menu (semua menu)
-  router.get('/api/menu', (Request req) {
-    return Response.ok(jsonEncode(menuList), headers: {'content-type': 'application/json'});
-  });
+  final port = int.tryParse(Platform.environment['PORT'] ?? '') ?? 8080;
+  final server = await io.serve(handler, InternetAddress.anyIPv4, port);
 
-  // 2. GET /api/menu/<id>
-  router.get('/api/menu/<id>', (Request req, String id) {
-    final item = menuList.firstWhere((e) => e['id'] == id, orElse: () => <String, dynamic>{});
-    if (item.isEmpty) return Response.notFound('Menu tidak ditemukan');
-    return Response.ok(jsonEncode(item), headers: {'content-type': 'application/json'});
-  });
+  print('KantinKu API berjalan di http://localhost:${server.port}');
+  print('Data awal: ${daftarMenu.length} menu');
+}
 
-  // 3. GET /kantin (Endpoint khas: Daftar kantin & jumlah menunya)
-  router.get('/kantin', (Request req) {
-    final Map<String, int> kantinCount = {};
-    for (var item in menuList) {
-      final kantin = item['kantin'] as String;
-      kantinCount[kantin] = (kantinCount[kantin] ?? 0) + 1;
+/// Membaca data/kantinku.json, baik saat dijalankan dari folder server/
+/// maupun dari folder lain.
+Future<List<Map<String, dynamic>>> _bacaDataAwal() async {
+  final kandidat = [
+    File('data/kantinku.json'),
+    File.fromUri(Platform.script.resolve('../data/kantinku.json')),
+  ];
+  for (final file in kandidat) {
+    if (await file.exists()) {
+      final isi = jsonDecode(await file.readAsString()) as List<dynamic>;
+      return isi.cast<Map<String, dynamic>>();
     }
-    final result = kantinCount.entries.map((e) => {'kantin': e.key, 'jumlah_menu': e.value}).toList();
-    return Response.ok(jsonEncode(result), headers: {'content-type': 'application/json'});
-  });
-
-  final handler = Pipeline().addMiddleware(logRequests()).addHandler(router.call);
-  final server = await io.serve(handler, InternetAddress.anyIPv4, 8080);
-  stdout.writeln('Server KantinKu berjalan di http://${server.address.host}:${server.port}');
+  }
+  throw StateError('File data/kantinku.json tidak ditemukan');
 }
