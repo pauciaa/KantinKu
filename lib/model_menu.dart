@@ -32,24 +32,6 @@ class Menu {
     );
   }
 
-  factory Menu.fromDummyJson(Map<String, dynamic> json) {
-    final price = json['price'];
-    if (price is! num) {
-      throw const FormatException('Harga menu dari API harus berupa angka.');
-    }
-
-    return Menu(
-      id: json['id'] as int,
-      nama: json['title'] as String,
-      kantin: 'Sumber: DummyJSON',
-      kategori: json['category'] as String,
-      harga: (price * 15000).round(),
-      tersedia: json['availabilityStatus'] != 'Out of Stock',
-      diperbarui: DateTime.now(),
-      gambar: json['thumbnail'] as String? ?? '',
-    );
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'id': id,
